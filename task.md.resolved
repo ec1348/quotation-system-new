@@ -1,0 +1,44 @@
+# Task List: Quotation System (New)
+
+## Project Initialization
+- [x] Initialize Next.js project (`quotation_system_new`) <!-- id: 0 -->
+- [x] Install dependencies ([prisma](file:///d:/EricChen/quotation_system/prisma/schema.prisma), `tailwindcss`, `lucide-react`, `jspdf`, `clsx`, `tailwind-merge`) <!-- id: 1 -->
+- [x] Configure Tailwind CSS (Premium Design) <!-- id: 2 -->
+- [x] Initialize Prisma with SQLite <!-- id: 3 -->
+
+## Database Design & Setup
+- [x] Define Schema <!-- id: 4 -->
+    - [x] [Supplier](file:///d:/EricChen/quotation_system_new/src/actions/supplier.ts#12-17) model
+    - [x] [Client](file:///d:/EricChen/quotation_system/src/components/quotes/QuoteBuilder.tsx#11-15) model
+    - [x] [Item](file:///d:/EricChen/quotation_system/src/components/quotes/QuoteBuilder.tsx#40-43) model (with year/versioning)
+    - [x] `Product` model (Machine types)
+    - [x] `ProductMaterial` model (BOM)
+    - [x] [Quote](file:///d:/EricChen/quotation_system/src/actions/quote.ts#15-24) and [QuoteItem](file:///d:/EricChen/quotation_system/src/components/quotes/QuoteBuilder.tsx#27-33) models
+- [x] Run Migrations <!-- id: 5 -->
+- [ ] Create Seed Data (Optional but helpful) <!-- id: 6 -->
+
+## Core Components
+- [x] Layout & Sidebar Navigation <!-- id: 7 -->
+- [x] UI Components (Card, Button, Input, Table, Modal/Sheet) <!-- id: 8 -->
+
+## Feature Implementation
+- [x] **Suppliers Management** <!-- id: 9 -->
+    - [x] List, Add, Edit, Delete
+- [x] **Client Management** <!-- id: 10 -->
+    - [x] List, Add, Edit, Delete
+- [ ] **Item Management** <!-- id: 11 -->
+    - [ ] List (grouped by name/year?)
+    - [ ] Add/Edit Item (handling "same item, different year")
+- [ ] **Product Management (Machines)** <!-- id: 12 -->
+    - [ ] Create Product
+    - [ ] Manage Bill of Materials (Add Items to Product)
+- [ ] **Quotation System** <!-- id: 13 -->
+    - [ ] Create Quote (Select Client)
+    - [ ] Add Products (Machines) to Quote
+    - [ ] Add Individual Items to Quote
+    - [ ] PDF Generation
+
+## Verification
+- [ ] Test Build Process <!-- id: 14 -->
+- [ ] Verify all CRUD operations <!-- id: 15 -->
+- [ ] Verify PDF Export <!-- id: 16 -->

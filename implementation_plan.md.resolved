@@ -1,0 +1,69 @@
+# Implementation Plan - Quotation System (New)
+
+## Goal
+Build a comprehensive quotation system for an auto control company. The system will manage suppliers, clients, items (with yearly versioning), products (machines with Bill of Materials), and generate quotations.
+
+## Tech Stack
+- **Framework**: Next.js 15 (App Router)
+- **Styling**: Tailwind CSS (Premium Aesthetic)
+- **Database**: SQLite with Prisma ORM
+- **Icons**: Lucide React
+- **PDF**: jsPDF
+
+## Proposed Changes
+
+### 1. Project Setup
+- Initialize `quotation_system_new`
+- Setup Global Styles (Premium Theme)
+- Configure Prisma (Ensure `engineType = "library"` for SQLite compatibility)
+
+### 2. Database Schema
+#### [NEW] [prisma/schema.prisma](file:///d:/EricChen/quotation_system/prisma/schema.prisma)
+- **Enum ItemType**: `COMPONENT`, `LABOR`, `EXPENSE`
+- **Supplier**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `name`, `contact`, `email`, `phone`, `businessNumber`, `address`
+- **Client**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `name`, `address`, `email`, `phone`, `businessNumber`
+- **Item**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `name`, `description`, `year` (Int), `price`, `supplierId`, `type` (ItemType @default(COMPONENT))
+    - *Note*: Items with the same name but different years are distinct records to track price history.
+    - *Usage*: Use `LABOR` type for "Work Day" items, `EXPENSE` for "Transportation/Food".
+- **Product**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `name`, `description` (Represents a Machine Type)
+- **ProductMaterial**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `productId`, `itemId`, `quantity` (The BOM)
+- **Quote**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `clientId`, [date](file:///d:/EricChen/quotation_system/src/components/quotes/QuoteBuilder.tsx#48-64), `status`, `total`
+- **QuoteItem**: [id](file:///d:/EricChen/quotation_system/src/components/Sidebar.tsx#15-48), `quoteId`, `productId` (optional), `itemId` (optional), `description`, `quantity`, `unitPrice`, `total`, `type` (ItemType)
+
+### 3. Features
+
+#### Suppliers
+- CRUD interface for managing suppliers.
+
+#### Items (Materials & Services)
+- CRUD interface.
+- Ability to filter by Year and Type (Component vs Labor vs Expense).
+- **Labor & Expenses**:
+    - Create "Items" for standard costs like "Factory Work Day", "On-site Work Day", "Transportation (km)", "Accommodation (night)".
+    - This allows you to standardize the cost of these services just like physical parts.
+
+#### Products (Machines)
+- CRUD interface for Machines.
+- **BOM Editor**: A UI to add `Items` to a `Product` to define its composition.
+- Auto-calculate Product cost based on Materials? (Optional but good).
+
+#### Clients
+- Standard CRUD.
+
+#### Quotations
+- **Builder UI**:
+    - Select Client.
+    - Add **Products** (Machines): Pulls the machine details.
+    - Add **Items** (Spare parts/Extras): Select from Item DB.
+    - Custom entries.
+- **PDF Generation**: Professional invoice/quote layout.
+
+## Verification Plan
+- **Automated**: Run `npm run build` frequently to catch type errors.
+- **Manual**:
+    1. Create a Supplier.
+    2. Create Items for 2024 and 2025.
+    3. Create a Product (Machine) and add Items to it.
+    4. Create a Client.
+    5. Generate a Quote with the Machine and extra Items.
+    6. Export PDF.
