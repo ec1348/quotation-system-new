@@ -7,9 +7,11 @@ import { createQuote } from '@/actions/quote';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Client } from '@prisma/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export default function NewQuotePage() {
     const router = useRouter();
+    const { t } = useLanguage();
     const [clients, setClients] = useState<Client[]>([]);
     const [selectedClientId, setSelectedClientId] = useState<string>('');
     const [isLoading, setIsLoading] = useState(true);
@@ -17,10 +19,8 @@ export default function NewQuotePage() {
 
     useEffect(() => {
         async function loadClients() {
-            const { data } = await getClients();
-            if (data) {
-                setClients(data);
-            }
+            const result = await getClients();
+            setClients(result);
             setIsLoading(false);
         }
         loadClients();
@@ -48,18 +48,18 @@ export default function NewQuotePage() {
         <div className="max-w-md mx-auto mt-10">
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New Quote</CardTitle>
+                    <CardTitle>{t('quote.newQuote')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Client</label>
+                        <label className="text-sm font-medium">{t('quote.selectClient')}</label>
                         <select
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={selectedClientId}
                             onChange={(e) => setSelectedClientId(e.target.value)}
                             disabled={isLoading}
                         >
-                            <option value="">-- Select Client --</option>
+                            <option value="">-- {t('quote.selectClient')} --</option>
                             {clients.map((client) => (
                                 <option key={client.id} value={client.id}>
                                     {client.name}
@@ -72,7 +72,7 @@ export default function NewQuotePage() {
                         onClick={handleCreate}
                         disabled={!selectedClientId || isCreating || isLoading}
                     >
-                        {isCreating ? 'Creating...' : 'Start Quote'}
+                        {isCreating ? t('common.loading') : t('common.confirm')}
                     </Button>
                 </CardContent>
             </Card>

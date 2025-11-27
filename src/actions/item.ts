@@ -89,3 +89,8 @@ export async function deleteItem(id: number) {
         throw error
     }
 }
+
+export async function deleteItemAction(formData: FormData) {
+    const id = parseInt(formData.get('id') as string);
+    await deleteItem(id);
+}

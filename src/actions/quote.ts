@@ -91,6 +91,12 @@ export async function deleteQuote(id: number) {
     }
 }
 
+export async function deleteQuoteAction(formData: FormData) {
+    const id = parseInt(formData.get('id') as string);
+    await deleteQuote(id);
+}
+
+
 export async function addQuoteItem(data: {
     quoteId: number;
     productId?: number;
@@ -170,7 +176,7 @@ async function recalculateQuoteTotal(quoteId: number) {
     });
     const total = items.reduce((sum, item) => sum + item.total, 0);
     await prisma.quote.update({
-        where: { quoteId },
+        where: { id: quoteId },
         data: { total },
     });
 }

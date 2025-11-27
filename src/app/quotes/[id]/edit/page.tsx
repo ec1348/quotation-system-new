@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation';
 import { getProducts } from '@/actions/product';
 import { getItems } from '@/actions/item';
 
-export default async function EditQuotePage({ params }: { params: { id: string } }) {
+export default async function EditQuotePage({ params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
     const quoteId = parseInt(id);
 

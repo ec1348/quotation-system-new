@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { addProductMaterial, updateProductMaterial, removeProductMaterial } from '@/actions/product';
 import { Item, ProductMaterial } from '@prisma/client';
 import { Trash2, Plus } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 type MaterialWithItem = ProductMaterial & { item: Item };
 
@@ -17,23 +18,42 @@ interface BOMEditorProps {
 }
 
 export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
+    const { t } = useLanguage();
     const [selectedItemId, setSelectedItemId] = useState<string>('');
     const [quantity, setQuantity] = useState<number>(1);
     const [isAdding, setIsAdding] = useState(false);
 
     const handleAdd = async () => {
-        if (!selectedItemId) return;
+        if (!selectedItemId) {
+            alert('Please select an item');
+            return;
+        }
+
+        // Use state, but validate it
+        if (!quantity || quantity <= 0) {
+            alert('Please enter a valid quantity');
+            return;
+        }
+
         setIsAdding(true);
         try {
-            await addProductMaterial({
+            console.log('Adding material:', { productId, itemId: selectedItemId, quantity });
+            const result = await addProductMaterial({
                 productId,
                 itemId: parseInt(selectedItemId),
                 quantity,
             });
-            setSelectedItemId('');
-            setQuantity(1);
+
+            if (result.success) {
+                console.log('Material added successfully');
+                setSelectedItemId('');
+                setQuantity(1);
+            } else {
+                console.error('Failed to add material:', result.error);
+                alert('Failed to add material: ' + result.error);
+            }
         } catch (error) {
-            console.error(error);
+            console.error('Error in handleAdd:', error);
             alert('Failed to add material');
         } finally {
             setIsAdding(false);
@@ -50,7 +70,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
     };
 
     const handleRemove = async (id: number) => {
-        if (!confirm('Are you sure?')) return;
+        if (!confirm(t('common.confirm') + '?')) return;
         try {
             await removeProductMaterial(id);
         } catch (error) {
@@ -64,22 +84,22 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
     return (
         <Card className="mt-6">
             <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Bill of Materials</CardTitle>
+                <CardTitle>{t('product.bom')}</CardTitle>
                 <div className="text-lg font-bold">
-                    Total Cost: ${totalCost.toLocaleString()}
+                    {t('product.totalCost')}: ${totalCost.toLocaleString()}
                 </div>
             </CardHeader>
             <CardContent className="space-y-6">
                 {/* Add Material Section */}
                 <div className="flex gap-4 items-end border-b pb-6">
                     <div className="flex-1 space-y-2">
-                        <label className="text-sm font-medium">Select Item</label>
+                        <label className="text-sm font-medium">{t('product.selectItem')}</label>
                         <select
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                             value={selectedItemId}
                             onChange={(e) => setSelectedItemId(e.target.value)}
                         >
-                            <option value="">-- Select Item --</option>
+                            <option value="">-- {t('product.selectItem')} --</option>
                             {allItems.map((item) => (
                                 <option key={item.id} value={item.id}>
                                     {item.name} ({item.year}) - ${item.price}
@@ -88,7 +108,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                         </select>
                     </div>
                     <div className="w-24 space-y-2">
-                        <label className="text-sm font-medium">Qty</label>
+                        <label className="text-sm font-medium">{t('common.quantity')}</label>
                         <Input
                             type="number"
                             min="1"
@@ -97,7 +117,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                         />
                     </div>
                     <Button onClick={handleAdd} disabled={!selectedItemId || isAdding}>
-                        <Plus className="mr-2 h-4 w-4" /> Add
+                        <Plus className="mr-2 h-4 w-4" /> {t('common.add')}
                     </Button>
                 </div>
 
@@ -113,7 +133,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                             </div>
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-muted-foreground">Qty:</span>
+                                    <span className="text-sm text-muted-foreground">{t('common.quantity')}:</span>
                                     <Input
                                         type="number"
                                         className="w-20 h-8"
@@ -138,7 +158,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                     ))}
                     {materials.length === 0 && (
                         <div className="text-center text-muted-foreground py-8">
-                            No materials added yet.
+                            {t('product.noMaterials')}
                         </div>
                     )}
                 </div>

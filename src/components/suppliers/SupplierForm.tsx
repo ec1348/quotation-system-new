@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
 import { createSupplier, updateSupplier } from '@/actions/supplier';
 import { Supplier } from '@prisma/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SupplierFormProps {
     supplier?: Supplier;
@@ -14,6 +15,7 @@ interface SupplierFormProps {
 
 export function SupplierForm({ supplier }: SupplierFormProps) {
     const router = useRouter();
+    const { t } = useLanguage();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
@@ -45,43 +47,43 @@ export function SupplierForm({ supplier }: SupplierFormProps) {
     return (
         <Card className="max-w-2xl mx-auto">
             <CardHeader>
-                <CardTitle>{supplier ? 'Edit Supplier' : 'Add New Supplier'}</CardTitle>
+                <CardTitle>{supplier ? t('supplier.editSupplier') : t('supplier.newSupplier')}</CardTitle>
             </CardHeader>
             <form action={handleSubmit}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium">Company Name</label>
+                        <label htmlFor="name" className="text-sm font-medium">{t('supplier.companyName')}</label>
                         <Input id="name" name="name" defaultValue={supplier?.name} required />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="businessNumber" className="text-sm font-medium">Business Number</label>
+                        <label htmlFor="businessNumber" className="text-sm font-medium">{t('common.businessNumber')}</label>
                         <Input id="businessNumber" name="businessNumber" defaultValue={supplier?.businessNumber || ''} />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="contact" className="text-sm font-medium">Contact Person</label>
+                        <label htmlFor="contact" className="text-sm font-medium">{t('supplier.contactPerson')}</label>
                         <Input id="contact" name="contact" defaultValue={supplier?.contact || ''} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                            <label htmlFor="email" className="text-sm font-medium">Email</label>
+                            <label htmlFor="email" className="text-sm font-medium">{t('common.email')}</label>
                             <Input id="email" name="email" type="email" defaultValue={supplier?.email || ''} />
                         </div>
                         <div className="space-y-2">
-                            <label htmlFor="phone" className="text-sm font-medium">Phone</label>
+                            <label htmlFor="phone" className="text-sm font-medium">{t('common.phone')}</label>
                             <Input id="phone" name="phone" defaultValue={supplier?.phone || ''} />
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="address" className="text-sm font-medium">Address</label>
+                        <label htmlFor="address" className="text-sm font-medium">{t('common.address')}</label>
                         <Input id="address" name="address" defaultValue={supplier?.address || ''} />
                     </div>
                 </CardContent>
                 <CardFooter className="justify-end space-x-2">
                     <Button type="button" variant="outline" onClick={() => router.back()}>
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : 'Save Supplier'}
+                        {isSubmitting ? t('common.loading') : t('common.save')}
                     </Button>
                 </CardFooter>
             </form>

@@ -3,7 +3,7 @@ import { getSuppliers } from '@/actions/supplier';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 
-export default async function EditItemPage({ params }: { params: { id: string } }) {
+export default async function EditItemPage({ params }: { params: Promise<{ id: string }> }) {
     // Await params before using its properties
     const { id } = await params;
     const itemId = parseInt(id);

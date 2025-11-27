@@ -40,3 +40,14 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# database
+*.db
+*.db-journal
+
+# logs
+*.log
+build_error.log
+
+# resolved artifacts
+*.resolved

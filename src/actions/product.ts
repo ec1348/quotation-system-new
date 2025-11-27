@@ -79,6 +79,11 @@ export async function deleteProduct(id: number) {
     }
 }
 
+export async function deleteProductAction(formData: FormData) {
+    const id = parseInt(formData.get('id') as string);
+    await deleteProduct(id);
+}
+
 // Product Material Actions (BOM)
 export async function addProductMaterial(data: {
     productId: number

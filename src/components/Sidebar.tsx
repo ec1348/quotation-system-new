@@ -4,18 +4,20 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Users, Package, FileText, Truck, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    { name: 'Suppliers', href: '/suppliers', icon: Truck },
-    { name: 'Clients', href: '/clients', icon: Users },
-    { name: 'Items', href: '/items', icon: Package },
-    { name: 'Products', href: '/products', icon: Package },
-    { name: 'Quotes', href: '/quotes', icon: FileText },
-];
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { t } = useLanguage();
+
+    const navigation = [
+        { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard }, // Changed href to / as per page.tsx location
+        { name: t('nav.suppliers'), href: '/suppliers', icon: Truck },
+        { name: t('nav.clients'), href: '/clients', icon: Users },
+        { name: t('nav.items'), href: '/items', icon: Package },
+        { name: t('nav.products'), href: '/products', icon: Package },
+        { name: t('nav.quotes'), href: '/quotes', icon: FileText },
+    ];
 
     return (
         <div className="flex h-full w-64 flex-col bg-card border-r">
@@ -24,10 +26,10 @@ export function Sidebar() {
             </div>
             <nav className="flex-1 space-y-1 px-2 py-4">
                 {navigation.map((item) => {
-                    const isActive = pathname.startsWith(item.href);
+                    const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
                     return (
                         <Link
-                            key={item.name}
+                            key={item.href}
                             href={item.href}
                             className={cn(
                                 "group flex items-center rounded-md px-2 py-2 text-sm font-medium transition-colors",

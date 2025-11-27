@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/Card';
 import { createProduct, updateProduct } from '@/actions/product';
 import { Product } from '@prisma/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ProductFormProps {
     product?: Product;
@@ -14,6 +15,7 @@ interface ProductFormProps {
 
 export function ProductForm({ product }: ProductFormProps) {
     const router = useRouter();
+    const { t } = useLanguage();
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
@@ -46,25 +48,25 @@ export function ProductForm({ product }: ProductFormProps) {
     return (
         <Card className="max-w-2xl mx-auto">
             <CardHeader>
-                <CardTitle>{product ? 'Edit Product' : 'Create New Product'}</CardTitle>
+                <CardTitle>{product ? t('product.editProduct') : t('product.newProduct')}</CardTitle>
             </CardHeader>
             <form action={handleSubmit}>
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
-                        <label htmlFor="name" className="text-sm font-medium">Product Name</label>
+                        <label htmlFor="name" className="text-sm font-medium">{t('product.productName')}</label>
                         <Input id="name" name="name" defaultValue={product?.name} required placeholder="e.g. Conveyor Belt System" />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="description" className="text-sm font-medium">Description</label>
-                        <Input id="description" name="description" defaultValue={product?.description || ''} placeholder="Machine description" />
+                        <label htmlFor="description" className="text-sm font-medium">{t('common.description')}</label>
+                        <Input id="description" name="description" defaultValue={product?.description || ''} placeholder={t('common.description')} />
                     </div>
                 </CardContent>
                 <CardFooter className="justify-end space-x-2">
                     <Button type="button" variant="outline" onClick={() => router.back()}>
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? 'Saving...' : (product ? 'Save Changes' : 'Create & Add Materials')}
+                        {isSubmitting ? t('common.loading') : (product ? t('common.save') : t('product.createAndAddMaterials'))}
                     </Button>
                 </CardFooter>
             </form>
