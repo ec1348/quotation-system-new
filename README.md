@@ -19,6 +19,8 @@ A comprehensive quotation management system built with Next.js 15, Prisma, and S
 - ✅ Real-time total calculation
 - ✅ Premium UI with Tailwind CSS
 - ✅ Server-side rendering with Next.js App Router
+- ✅ **Soft Delete / Archiving**: Items can be archived to preserve history.
+- ✅ **Multi-language Support**: English and Traditional Chinese (繁體中文).
 
 ## Tech Stack
 

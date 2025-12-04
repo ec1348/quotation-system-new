@@ -1,12 +1,28 @@
-generator client {
-  provider = "prisma-client-js"
-}
+# Project Overview
 
-datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
-}
+## Tech Stack
+- **Framework**: Next.js 15.0.3
+- **Language**: TypeScript
+- **Database**: SQLite (via Prisma ORM 5.22.0)
+- **Styling**: Tailwind CSS 3.4.1
+- **UI Components**: Radix UI, Lucide React
+- **PDF Generation**: @react-pdf/renderer, jspdf
 
+## Project Structure
+- **`src/app`**: Application routes and pages.
+  - `clients/`: Client management pages.
+  - `suppliers/`: Supplier management pages.
+  - `items/`: Item (components, labor, expense) management.
+  - `products/`: Product (machines/BOM) management.
+  - `quotes/`: Quotation management and builder.
+  - `dashboard/`: Main dashboard.
+- **`src/components`**: Reusable UI components.
+- **`src/actions`**: Server actions for database mutations.
+- **`src/lib`**: Utility functions (e.g., dictionary, helpers).
+- **`prisma`**: Database schema (`schema.prisma`) and migrations.
+
+## Data Schema
+```prisma
 model Supplier {
   id             Int      @id @default(autoincrement())
   name           String
@@ -16,7 +32,6 @@ model Supplier {
   businessNumber String?
   address        String?
   items          Item[]
-  priceHistory   ItemPriceHistory[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -40,28 +55,13 @@ model Item {
   year        Int
   price       Float
   type        String            @default("COMPONENT") // COMPONENT, LABOR, EXPENSE
-  status      String            @default("ACTIVE") // ACTIVE, ARCHIVED
+  status      String            @default("ACTIVE")    // ACTIVE, ARCHIVED
   supplierId  Int?
   supplier    Supplier?         @relation(fields: [supplierId], references: [id])
   materials   ProductMaterial[]
   quoteItems  QuoteItem[]
-  priceHistory ItemPriceHistory[]
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
-}
-
-model ItemPriceHistory {
-  id           Int      @id @default(autoincrement())
-  itemId       Int
-  item         Item     @relation(fields: [itemId], references: [id])
-  date         DateTime
-  supplierId   Int
-  supplier     Supplier @relation(fields: [supplierId], references: [id])
-  price        Float
-  currency     String   @default("TWD")
-  type         String   // "PURCHASE" | "QUOTATION"
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
 }
 
 model Product {
@@ -109,3 +109,4 @@ model QuoteItem {
   total       Float
   type        String   @default("COMPONENT") // COMPONENT, LABOR, EXPENSE
 }
+```
