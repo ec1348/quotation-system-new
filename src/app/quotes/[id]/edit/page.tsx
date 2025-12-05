@@ -1,47 +1,24 @@
-import { QuoteBuilder } from '@/components/quotes/QuoteBuilder';
-import { prisma } from '@/lib/prisma';
-import { notFound } from 'next/navigation';
-import { getProducts } from '@/actions/product';
+import { getQuote } from '@/actions/quote';
 import { getItems } from '@/actions/item';
+import { QuoteBuilder } from '@/components/quotes/QuoteBuilder';
+import { notFound } from 'next/navigation';
 
-export default async function EditQuotePage({ params }: { params: Promise<{ id: string }> }) {
-    const { id } = await params;
-    const quoteId = parseInt(id);
-
-    if (isNaN(quoteId)) {
-        notFound();
-    }
-
-    const [quote, productsResult, itemsResult] = await Promise.all([
-        prisma.quote.findUnique({
-            where: { id: quoteId },
-            include: {
-                client: true,
-                items: {
-                    orderBy: { id: 'asc' }
-                }
-            }
-        }),
-        prisma.product.findMany({
-            include: {
-                materials: {
-                    include: { item: true }
-                }
-            }
-        }),
-        getItems()
+export default async function EditQuotePage({ params }: { params: { id: string } }) {
+    const id = parseInt(params.id);
+    const [quoteResult, itemsResult] = await Promise.all([
+        getQuote(id),
+        getItems('ACTIVE')
     ]);
 
-    if (!quote) {
+    if (!quoteResult.success || !quoteResult.data) {
         notFound();
     }
 
     return (
-        <div className="max-w-5xl mx-auto">
+        <div className="container mx-auto py-10">
             <QuoteBuilder
-                quote={quote}
-                products={productsResult}
-                items={itemsResult.data || []}
+                quote={quoteResult.data}
+                availableItems={itemsResult.data || []}
             />
         </div>
     );

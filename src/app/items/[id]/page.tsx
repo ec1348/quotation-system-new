@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { ItemCostHistory } from '@/components/items/ItemCostHistory';
+import { getRelatedPriceHistory } from '@/actions/priceHistory';
 import { ItemDetailsHeader } from '@/components/items/ItemDetailsHeader';
 import { notFound } from 'next/navigation';
 
@@ -17,7 +18,7 @@ export default async function ItemDetailsPage({ params }: PageProps) {
 
     const item = await prisma.item.findUnique({
         where: { id: itemId },
-        include: { supplier: true },
+        // include: { supplier: true }, // Supplier is not on Item directly anymore
     });
 
     const suppliers = await prisma.supplier.findMany({
@@ -29,6 +30,9 @@ export default async function ItemDetailsPage({ params }: PageProps) {
         include: { supplier: true },
         orderBy: { date: 'desc' },
     });
+
+    const relatedHistoryRes = await getRelatedPriceHistory(item?.name || '');
+    const relatedHistory = relatedHistoryRes.success ? relatedHistoryRes.data : [];
 
     if (!item) {
         notFound();
@@ -42,6 +46,7 @@ export default async function ItemDetailsPage({ params }: PageProps) {
                 <ItemCostHistory
                     suppliers={suppliers}
                     initialHistory={priceHistory}
+                    relatedHistory={relatedHistory}
                     isArchived={item.status === 'ARCHIVED'}
                 />
             </div>

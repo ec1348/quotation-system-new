@@ -33,10 +33,11 @@ interface CostEntry {
 interface ItemCostHistoryProps {
     suppliers?: { id: number; name: string }[];
     initialHistory?: any[];
+    relatedHistory?: any[];
     isArchived?: boolean;
 }
 
-export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchived = false }: ItemCostHistoryProps) {
+export function ItemCostHistory({ suppliers = [], initialHistory = [], relatedHistory = [], isArchived = false }: ItemCostHistoryProps) {
     const { t } = useLanguage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [filterSupplier, setFilterSupplier] = useState<string>("");
@@ -52,6 +53,8 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
         price: "",
         type: "QUOTATION"
     });
+
+    const [activeTab, setActiveTab] = useState<'specific' | 'global'>('specific');
 
     const handleSave = async () => {
         if (!formData.supplierId || !formData.price || !formData.date) return;
@@ -99,14 +102,17 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
         return null;
     };
 
-    const historyData = initialHistory.map(h => ({
+    const mapHistoryData = (data: any[]) => data.map(h => ({
         id: h.id,
         date: new Date(h.date),
         supplier: h.supplier,
         unitCost: h.price,
         currency: h.currency || 'TWD',
-        sourceType: h.type
+        sourceType: h.type,
+        item: h.item // Include item info for global view
     }));
+
+    const historyData = mapHistoryData(activeTab === 'specific' ? initialHistory : relatedHistory);
 
     const filteredData = historyData.filter(entry => {
         const entryDateStr = entry.date.toISOString().split('T')[0];
@@ -126,11 +132,33 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
         <Card className="w-full">
             <CardHeader className="flex flex-col space-y-4 pb-2">
                 <div className="flex flex-row items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                        <History className="h-5 w-5 text-muted-foreground" />
-                        <CardTitle>{t('item.priceHistory')}</CardTitle>
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <History className="h-5 w-5 text-muted-foreground" />
+                            <CardTitle>{t('item.priceHistory')}</CardTitle>
+                        </div>
+                        <div className="flex bg-muted rounded-lg p-1">
+                            <button
+                                onClick={() => setActiveTab('specific')}
+                                className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === 'specific'
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                            >
+                                {t('item.specificItem')}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('global')}
+                                className={`px-3 py-1 text-sm font-medium rounded-md transition-all ${activeTab === 'global'
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                            >
+                                {t('item.allItemsSameName')}
+                            </button>
+                        </div>
                     </div>
-                    {!isArchived && (
+                    {!isArchived && activeTab === 'specific' && (
                         <Button variant="outline" size="sm" onClick={() => setIsModalOpen(true)}>
                             <Plus className="h-4 w-4 mr-2" />
                             {t('item.addNewPrice')}
@@ -191,6 +219,12 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
                     <TableHeader>
                         <TableRow>
                             <TableHead className="w-[150px]">{t('common.date')}</TableHead>
+                            {activeTab === 'global' && (
+                                <>
+                                    <TableHead>{t('item.brand')}</TableHead>
+                                    <TableHead>{t('item.model')}</TableHead>
+                                </>
+                            )}
                             <TableHead>{t('supplier.title')}</TableHead>
                             <TableHead>{t('common.type')}</TableHead>
                             <TableHead className="text-right">{t('common.unitPrice')}</TableHead>
@@ -203,6 +237,12 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
                                     <TableCell className="text-muted-foreground font-medium">
                                         {entry.date.toISOString().split('T')[0]}
                                     </TableCell>
+                                    {activeTab === 'global' && (
+                                        <>
+                                            <TableCell>{entry.item?.brand}</TableCell>
+                                            <TableCell>{entry.item?.model}</TableCell>
+                                        </>
+                                    )}
                                     <TableCell className="font-bold">
                                         {entry.supplier.name}
                                     </TableCell>
@@ -221,7 +261,7 @@ export function ItemCostHistory({ suppliers = [], initialHistory = [], isArchive
                             ))
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={4} className="h-24 text-center">
+                                <TableCell colSpan={activeTab === 'global' ? 6 : 4} className="h-24 text-center">
                                     {t('common.noResults')}
                                 </TableCell>
                             </TableRow>

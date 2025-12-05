@@ -79,7 +79,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
         }
     };
 
-    const totalCost = materials.reduce((sum, m) => sum + (m.item.price * m.quantity), 0);
+    const totalCost = materials.reduce((sum, m) => sum + (m.item.salePrice * m.quantity), 0);
 
     return (
         <Card className="mt-6">
@@ -102,7 +102,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                             <option value="">-- {t('product.selectItem')} --</option>
                             {allItems.map((item) => (
                                 <option key={item.id} value={item.id}>
-                                    {item.name} ({item.year}) - ${item.price}
+                                    {item.name} ({item.year}) - ${item.salePrice}
                                 </option>
                             ))}
                         </select>
@@ -128,7 +128,7 @@ export function BOMEditor({ productId, materials, allItems }: BOMEditorProps) {
                             <div className="flex-1">
                                 <div className="font-medium">{material.item.name}</div>
                                 <div className="text-sm text-muted-foreground">
-                                    ${material.item.price} x {material.quantity} = ${(material.item.price * material.quantity).toLocaleString()}
+                                    ${material.item.salePrice} x {material.quantity} = ${(material.item.salePrice * material.quantity).toLocaleString()}
                                 </div>
                             </div>
                             <div className="flex items-center gap-4">

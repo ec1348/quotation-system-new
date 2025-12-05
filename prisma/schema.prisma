@@ -15,7 +15,6 @@ model Supplier {
   phone          String?
   businessNumber String?
   address        String?
-  items          Item[]
   priceHistory   ItemPriceHistory[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -35,19 +34,38 @@ model Client {
 
 model Item {
   id          Int               @id @default(autoincrement())
-  name        String
+  
+  // --- 識別資料 (Identity) ---
+  name        String            @default("") // 品名 (如: 400W 伺服馬達)
+  brand       String            // 品牌 (如: Delta)
+  model       String            // 型號 (如: ECMA-C20604RS)
   description String?
   year        Int
-  price       Float
-  type        String            @default("COMPONENT") // COMPONENT, LABOR, EXPENSE
-  status      String            @default("ACTIVE") // ACTIVE, ARCHIVED
-  supplierId  Int?
-  supplier    Supplier?         @relation(fields: [supplierId], references: [id])
-  materials   ProductMaterial[]
-  quoteItems  QuoteItem[]
+  
+  // --- 銷售設定 ---
+  salePrice   Float             @default(0) // 這是「預設牌價」，給業務參考用，報價時可以改
+  category    String            // Enum: ItemCategory (零件分類)
+  
+  // --- 系統保護 ---
+  status      String            @default("ACTIVE") // Enum: ItemStatus (零件狀態: ACTIVE=啟用, ARCHIVED=封存)
+  
+  // --- 關聯 ---
+  // 這裡連結到「進貨成本紀錄」
   priceHistory ItemPriceHistory[]
+  
+  // 這裡連結到「BOM 表」(如果這個零件是某產品的材料)
+  materials    ProductMaterial[]
+  
+  // 用來查詢「這個零件被賣過幾次」(關聯到 QuoteItem)
+  quoteItems   QuoteItem[]
+  
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
+
+  // 🔥 關鍵設定：防止重複建立相同的「品牌+型號」
+  @@unique([brand, model])
+  // 建立索引以加速搜尋
+  @@index([name])
 }
 
 model ItemPriceHistory {
@@ -57,9 +75,13 @@ model ItemPriceHistory {
   date         DateTime
   supplierId   Int
   supplier     Supplier @relation(fields: [supplierId], references: [id])
-  price        Float
+  
+  // --- 價格資料 ---
+  price        Float    // 進貨成本 (Cost)
   currency     String   @default("TWD")
-  type         String   // "PURCHASE" | "QUOTATION"
+  
+  // 紀錄這是「真的買了」還是「只是問問」
+  type         String   // Enum: PriceType (PURCHASE=實際進貨, QUOTATION=供應商報價)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
@@ -89,7 +111,10 @@ model Quote {
   client    Client      @relation(fields: [clientId], references: [id])
   date      DateTime    @default(now())
   status    String      @default("DRAFT") // DRAFT, SENT, ACCEPTED
-  total     Float       @default(0)
+  
+  // 總金額 (通常由後端加總計算)
+  totalAmount Float     @default(0)
+  
   items     QuoteItem[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
@@ -99,13 +124,46 @@ model QuoteItem {
   id          Int      @id @default(autoincrement())
   quoteId     Int
   quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
-  productId   Int?
-  product     Product? @relation(fields: [productId], references: [id])
+  
+  // --- 1. 來源追蹤 (選填) ---
+  // 如果這一整組是從某個 Product (如攪拌機) 匯入的，紀錄來源 ID
+  sourceProductId   Int?
+  product     Product? @relation(fields: [sourceProductId], references: [id])
+  
+  // 即使 Item 被刪除，這裡只是留個連結方便統計，不影響報價單顯示
   itemId      Int?
   item        Item?    @relation(fields: [itemId], references: [id])
-  description String
+  
+  // --- 2. 結構與顯示 (Hierarchy) ---
+  // 支援 BOM 展開與摺疊
+  parentId        Int?
+  parent          QuoteItem?  @relation("QuoteItemHierarchy", fields: [parentId], references: [id])
+  children        QuoteItem[] @relation("QuoteItemHierarchy")
+  
+  // 是否為套裝標題？ (True = 報價單只印這行總價，False = 印細項)
+  isBundleHeader  Boolean     @default(false)
+  displayOrder    Int         @default(0) // 用於排序
+
+  // --- 3. 快照資料 (Snapshot - 這是報價單真正印出來的內容) ---
+  // 這些資料在建立報價單當下，會從 Item 複製過來
+  // 這樣就算 Item 主檔改名或漲價，這張舊報價單永遠不會變
+  brand       String?
+  model       String?
+  name        String      // 業務可以手動修改品名 (例如: 加註 "含5米線")
+  description String?
+  
+  // --- 4. 價格計算 ---
   quantity    Int
-  unitPrice   Float
-  total       Float
+  unitPrice   Float       // 賣給客戶的單價 (Selling Price)
+  total       Float       // quantity * unitPrice
+  
+  // 🔥 隱藏欄位：成本快照
+  // 報價當下，系統從 ItemPriceHistory 抓來的最新成本
+  // 用途：年底計算「這張單實際賺了多少錢 (毛利)」
+  costBasis   Float?
+
   type        String   @default("COMPONENT") // COMPONENT, LABOR, EXPENSE
+  
+  // Soft Delete
+  deletedAt   DateTime?
 }

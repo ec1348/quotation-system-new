@@ -32,12 +32,12 @@ export async function createPriceHistory(data: {
         // BUT only if the new record is a PURCHASE price.
         // We want to keep the Item price as the latest PURCHASE price.
         if (latestHistory && latestHistory.id === history.id && data.type === 'PURCHASE') {
+            // We no longer cache price/supplier on Item. It's all in priceHistory.
+            // But we might want to update the year?
             await prisma.item.update({
                 where: { id: data.itemId },
                 data: {
-                    price: data.price,
                     year: data.date.getFullYear(),
-                    supplierId: data.supplierId,
                 },
             });
         }
@@ -47,5 +47,55 @@ export async function createPriceHistory(data: {
     } catch (error) {
         console.error('Failed to create price history:', error);
         return { success: false, error: 'Failed to create price history' };
+    }
+}
+
+export async function searchPriceHistory(query: string) {
+    try {
+        const history = await prisma.itemPriceHistory.findMany({
+            where: {
+                item: {
+                    OR: [
+                        { name: { contains: query } },
+                        { brand: { contains: query } },
+                        { model: { contains: query } },
+                    ]
+                }
+            },
+            include: {
+                item: true,
+                supplier: true,
+            },
+            orderBy: {
+                date: 'desc',
+            },
+        });
+        return { success: true, data: history };
+    } catch (error) {
+        console.error('Failed to search price history:', error);
+        return { success: false, error: 'Failed to search price history' };
+    }
+}
+
+export async function getRelatedPriceHistory(itemName: string) {
+    try {
+        const history = await prisma.itemPriceHistory.findMany({
+            where: {
+                item: {
+                    name: itemName
+                }
+            },
+            include: {
+                item: true,
+                supplier: true,
+            },
+            orderBy: {
+                date: 'desc',
+            },
+        });
+        return { success: true, data: history };
+    } catch (error) {
+        console.error('Failed to get related price history:', error);
+        return { success: false, error: 'Failed to get related price history' };
     }
 }

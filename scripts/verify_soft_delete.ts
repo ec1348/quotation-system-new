@@ -12,8 +12,10 @@ async function verifySoftDelete() {
             name: 'Test Soft Delete Item',
             description: 'This item should be soft deleted',
             year: 2024,
-            price: 100,
-            type: 'COMPONENT',
+            salePrice: 100,
+            brand: 'Test Brand',
+            model: 'Test Model',
+            category: 'CONTROLLER',
             status: 'ACTIVE'
         }
     })

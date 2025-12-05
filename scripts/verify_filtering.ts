@@ -11,8 +11,10 @@ async function verifyFiltering() {
         data: {
             name: 'Active Item',
             year: 2024,
-            price: 100,
-            type: 'COMPONENT',
+            salePrice: 100,
+            brand: 'Test Brand',
+            model: 'Test Model',
+            category: 'CONTROLLER',
             status: 'ACTIVE'
         }
     })
@@ -20,8 +22,8 @@ async function verifyFiltering() {
         data: {
             name: 'Archived Item',
             year: 2024,
-            price: 100,
-            type: 'COMPONENT',
+            salePrice: 100,
+            category: 'CONTROLLER',
             status: 'ARCHIVED'
         }
     })

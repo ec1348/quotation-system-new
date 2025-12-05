@@ -2,6 +2,8 @@
 
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
+import { Prisma } from '@prisma/client'
+import { ItemStatus, PriceType } from '@/types/enums'
 
 export async function getItems(status: string = 'ACTIVE') {
     try {
@@ -14,7 +16,11 @@ export async function getItems(status: string = 'ACTIVE') {
         const items = await prisma.item.findMany({
             where,
             include: {
-                supplier: true,
+                priceHistory: {
+                    orderBy: { date: 'desc' },
+                    take: 1,
+                    include: { supplier: true }
+                }
             },
             orderBy: {
                 updatedAt: 'desc',
@@ -27,36 +33,72 @@ export async function getItems(status: string = 'ACTIVE') {
     }
 }
 
+export async function getItem(id: number) {
+    try {
+        const item = await prisma.item.findUnique({
+            where: { id },
+            include: {
+                priceHistory: {
+                    orderBy: { date: 'desc' },
+                    include: { supplier: true }
+                }
+            }
+        })
+        return { success: true, data: item }
+    } catch (error) {
+        console.error('Failed to get item:', error)
+        return { success: false, error: 'Failed to get item' }
+    }
+}
+
 export async function createItem(data: {
     name: string
+    brand: string
+    model: string
     description?: string
     year: number
-    price: number
-    type: string
+    salePrice: number
+    category: string
+    initialCost?: number
     supplierId?: number
-    priceType?: string // 'QUOTATION' | 'PURCHASE'
 }) {
     try {
+        // Check for duplicate brand+model
+        const existingItem = await prisma.item.findUnique({
+            where: {
+                brand_model: {
+                    brand: data.brand,
+                    model: data.model
+                }
+            }
+        })
+
+        if (existingItem) {
+            return { success: false, error: 'Item with this Brand and Model already exists.' }
+        }
+
         const item = await prisma.item.create({
             data: {
                 name: data.name,
+                brand: data.brand,
+                model: data.model,
                 description: data.description,
                 year: data.year,
-                price: data.price,
-                type: data.type,
-                supplierId: data.supplierId,
-                status: 'ACTIVE',
+                salePrice: data.salePrice,
+                category: data.category,
+                status: ItemStatus.ACTIVE,
             },
         })
 
-        if (data.supplierId) {
+        // Create initial price history if cost and supplier are provided
+        if (data.initialCost && data.supplierId) {
             await prisma.itemPriceHistory.create({
                 data: {
                     itemId: item.id,
-                    price: data.price,
+                    price: data.initialCost,
                     date: new Date(),
                     supplierId: data.supplierId,
-                    type: data.priceType || 'QUOTATION',
+                    type: PriceType.PURCHASE,
                 },
             })
         }
@@ -73,12 +115,15 @@ export async function updateItem(
     id: number,
     data: {
         name: string
+        brand: string
+        model: string
         description?: string
         year: number
-        price: number
-        type: string
+        salePrice: number
+        category: string
+        status?: string
+        newCost?: number
         supplierId?: number
-        priceType?: string // 'QUOTATION' | 'PURCHASE'
     }
 ) {
     try {
@@ -90,36 +135,29 @@ export async function updateItem(
             return { success: false, error: 'Item not found' }
         }
 
-        // Only update the item's price if the new price type is PURCHASE
-        // OR if the price hasn't changed (to allow updating other fields)
-        // BUT if price changed and it's QUOTATION, we keep the old price on the item
-        let newPrice = existingItem.price;
-        if (data.priceType === 'PURCHASE' || existingItem.price === data.price) {
-            newPrice = data.price;
-        }
-
         const item = await prisma.item.update({
             where: { id },
             data: {
                 name: data.name,
+                brand: data.brand,
+                model: data.model,
                 description: data.description,
                 year: data.year,
-                price: newPrice, // Use the conditional price
-                type: data.type,
-                supplierId: data.supplierId,
+                salePrice: data.salePrice,
+                category: data.category,
+                status: data.status || existingItem.status,
             },
         })
 
-        // Create price history if price changed (from input) and supplier is available
-        // We record the input price in history regardless of whether we updated the item's main price
-        if (existingItem.price !== data.price && data.supplierId) {
+        // Add to price history if new cost is provided
+        if (data.newCost && data.supplierId) {
             await prisma.itemPriceHistory.create({
                 data: {
                     itemId: item.id,
-                    price: data.price,
+                    price: data.newCost,
                     date: new Date(),
                     supplierId: data.supplierId,
-                    type: data.priceType || 'QUOTATION',
+                    type: PriceType.PURCHASE,
                 },
             })
         }
@@ -128,6 +166,10 @@ export async function updateItem(
         return { success: true, data: item }
     } catch (error) {
         console.error('Failed to update item:', error)
+        // Handle unique constraint violation
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+            return { success: false, error: 'Item with this Brand and Model already exists.' }
+        }
         return { success: false, error: 'Failed to update item' }
     }
 }
@@ -138,7 +180,7 @@ export async function deleteItem(id: number) {
         await prisma.item.update({
             where: { id },
             data: {
-                status: 'ARCHIVED',
+                status: ItemStatus.ARCHIVED,
             },
         })
         revalidatePath('/items')
@@ -158,7 +200,7 @@ export async function activateItem(id: number) {
         await prisma.item.update({
             where: { id },
             data: {
-                status: 'ACTIVE',
+                status: ItemStatus.ACTIVE,
             },
         })
         revalidatePath('/items')

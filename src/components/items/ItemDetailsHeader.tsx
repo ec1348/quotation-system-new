@@ -15,14 +15,12 @@ interface ItemDetailsHeaderProps {
     item: {
         id: number;
         name: string;
-        type: string;
+        category: string;
         description: string | null;
-        price: number;
+        salePrice: number;
         year: number;
         status: string;
-        supplier: {
-            name: string;
-        } | null;
+        // supplier removed as it's not on Item directly
     };
 }
 
@@ -67,7 +65,7 @@ export function ItemDetailsHeader({ item }: ItemDetailsHeaderProps) {
             <div className="flex flex-col space-y-2">
                 <div className="flex items-center space-x-4">
                     <h1 className="text-3xl font-bold tracking-tight">{item.name}</h1>
-                    <Badge variant="outline">{item.type}</Badge>
+                    <Badge variant="outline">{item.category}</Badge>
                     {isArchived && (
                         <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">
                             {t('common.archived')}
@@ -76,15 +74,9 @@ export function ItemDetailsHeader({ item }: ItemDetailsHeaderProps) {
                 </div>
                 <p className="text-muted-foreground">{item.description}</p>
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>{t('item.currentPrice')}: ${item.price}</span>
+                    <span>{t('item.currentPrice')}: ${item.salePrice}</span>
                     <span>•</span>
                     <span>{t('common.year')}: {item.year}</span>
-                    {item.supplier && (
-                        <>
-                            <span>•</span>
-                            <span>{t('supplier.title')}: {item.supplier.name}</span>
-                        </>
-                    )}
                 </div>
             </div>
         </div>

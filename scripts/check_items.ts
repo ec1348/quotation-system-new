@@ -20,9 +20,10 @@ async function main() {
                 name: 'Test Item',
                 description: 'A test item for verification',
                 year: 2024,
-                price: 100,
-                type: 'COMPONENT',
-                supplierId: supplier.id,
+                salePrice: 100,
+                category: 'CONTROLLER',
+                brand: 'Test Brand',
+                model: 'Test Model',
             },
         });
         console.log(`Created item with ID: ${item.id}`);

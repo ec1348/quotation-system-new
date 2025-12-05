@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Users, Package, FileText, Truck, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Package, FileText, Truck, Settings, History } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -17,6 +17,7 @@ export function Sidebar() {
         { name: t('nav.items'), href: '/items', icon: Package },
         { name: t('nav.products'), href: '/products', icon: Package },
         { name: t('nav.quotes'), href: '/quotes', icon: FileText },
+        { name: t('item.priceHistory'), href: '/price-history', icon: History },
     ];
 
     return (

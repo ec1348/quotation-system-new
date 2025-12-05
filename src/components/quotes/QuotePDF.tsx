@@ -215,7 +215,7 @@ export const QuotePDF = ({ quote }: QuotePDFProps) => (
             {/* Total */}
             <View style={styles.totalSection}>
                 <Text style={styles.totalLabel}>總金額 (Grand Total):</Text>
-                <Text style={styles.totalValue}>${quote.total.toLocaleString()}</Text>
+                <Text style={styles.totalValue}>${quote.totalAmount.toLocaleString()}</Text>
             </View>
 
             {/* Footer */}

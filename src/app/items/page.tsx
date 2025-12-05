@@ -12,6 +12,5 @@ export default async function ItemsPage({
     const { status = 'ACTIVE' } = await searchParams
     const { data } = await getItems(status)
     const items = data as ItemWithSupplier[] | undefined
-
     return <ItemList items={items || []} currentStatus={status} />
 }

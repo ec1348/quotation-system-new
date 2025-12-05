@@ -31,7 +31,7 @@ export function ProductList({ products }: ProductListProps) {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {products.map((product) => {
-                    const totalCost = product.materials.reduce((sum, m) => sum + (m.item.price * m.quantity), 0);
+                    const totalCost = product.materials.reduce((sum, m) => sum + (m.item.salePrice * m.quantity), 0);
 
                     return (
                         <div key={product.id} className="rounded-lg border bg-card text-card-foreground shadow-sm">
